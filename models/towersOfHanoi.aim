@@ -1,0 +1,18 @@
+#instance: 			nrTurnuri:int, nrPiese:int; 
+					instance.nrTurnuri = nrTurnuri; instance.nrPiese = nrPiese;
+#initial-state: 	initialState: list<int>;
+					initialState[0] = instance.nrTurnuri;
+					foreach i <- [1, instance.nrPiese]:
+						initialState[i] = 1;
+					end
+					return initialState;
+#valid-state:		state: int;
+ 					forall i <- [1, instance.nrTurnuri]: state[i] != 0
+#final-state: 		state:list<int>;
+					forall i <- [0, instance.nrPiese]:state[i] == instance.nrTurnuri
+#transition: 		state:list<int>, piece:int, tower:int, newState:list<int>;
+					newState = state;
+					newState[piece] = tower;
+					return newState;
+#valid-transition: 	state:list<int>, piece:int, tower:int;
+					(forall i <- [1, piece-1]: state[i] != tower)

@@ -1,0 +1,79 @@
+type        : INT
+            | LIST "<" type ">"
+
+decl        : ID ":" type //done
+decls       : decl //done
+            | decls "," decl //done
+
+exp         : NUMBER //done
+            | ID //done
+            | INSTANCE "." ID //done
+            | basicfunctions //done
+            | exp "[" exp "]" //done
+            | exp OPERATION exp //done
+
+bool        : exp BOOLOPERATION exp //done
+            | FORALL rangeiter ":" bool //done
+            | EXISTS rangeiter ":" bool //done
+            | bool AND bool //done
+            | bool OR bool //done
+            | NOT bool //done
+            | "(" bool ")" //done
+            | BOOL //done
+
+codeblock   : code codeblock //done
+            | code //done
+
+code        : exp "=" exp ";" //done
+            | IF bool "then" codeblock (ELSE codeblock)? "endif" //done
+            | WHILE bool "do" codeblock "end"
+            | FOREACH rangeiter ":" codeblock "end" //done
+            | RETURN ID ";" //done
+
+basicfunctions  : SIZE "(" exp ")" 
+
+strategyname    : "random"
+                | "hill-climbing"
+
+instance            : "#instance:" decls ";" codeblock
+validstate          : "#valid-state:" decl ";" bool
+initialstate        : "#initial-state:" (decls ";")? codeblock
+finalstate          : "#final-state:" decls ";" bool
+transition          : "#transition:" decls ";" codeblock
+validtransition     : "#valid-transition:" decls ";" bool
+strategy            : "#strategy:" strategyname
+                    | "#strategy:" strategyname ";" decls";" codeblock
+
+specification       : instance? initialstate validstate finalstate transition validtransition strategy?
+
+rangeiter   : ID "<-" range //done
+range       : "[" exp "," exp "]" //done
+
+
+ID          : /[A-Za-z][A-Za-z0-9]*/
+NUMBER      : /(-?[1-9][0-9]*)|0/
+BOOL        : /True|False/
+
+INSTANCE    : "instance"
+
+OPERATION       : /\*|\/|%|\+|-/
+BOOLOPERATION   : /==|!=|<=|<|>=|>/
+AND             : /&&/
+OR              : /\|\|/
+NOT             : /!/
+
+FORALL          : /forall/
+EXISTS          : /exists/
+
+INT         : "int"
+LIST        : "list"
+RETURN      : "return"
+IF          : "if"
+ELSE        : "else"
+WHILE       : "while"
+FOREACH     : "foreach"
+
+SIZE        : "len"
+
+%import common.WS
+%ignore WS
