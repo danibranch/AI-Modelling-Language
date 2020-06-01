@@ -4,12 +4,17 @@ import sys
 
 class BasicFunctions(Transformer):
 	def basicfunctions(self, children):
-		return str(children[0]) + "(" + children[1] + ")"
+		if (children[0].type.lower() == "size"):
+			return str(children[0]) + "(" + children[1] + ")"
+		elif (children[0].type.lower() == "append"):
+			return Exp().transform(children[1]) + ".append(" + Exp().transform(children[2]) + ")"
 
 
 class Exp(Transformer):
 	def exp(self, children):
-		if isinstance(children[0], Token):
+		if (len(children) == 0):
+			return "[]"
+		elif isinstance(children[0], Token):
 			if children[0].type.lower() == "number":
 				return str(children[0])
 			elif children[0].type.lower() == "id":
@@ -85,7 +90,9 @@ class Code(Transformer):
 				variable.append("while (" + Bool().transform(children[1]) + "):")
 				variable.append(CodeBlock().transform(children[2]))
 		else:
-			variable.append(Exp().transform(children[0]) + '=' + Exp().transform(children[1]))
+			if (children[0].data == "basicfunctions"):
+				variable.append(BasicFunctions().transform(children[0]))
+			else: variable.append(Exp().transform(children[0]) + '=' + Exp().transform(children[1]))
 		return variable
 
 
