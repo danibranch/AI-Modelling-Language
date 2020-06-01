@@ -1,37 +1,40 @@
 type        : INT
             | LIST "<" type ">"
 
-decl        : ID ":" type //done
-decls       : decl //done
-            | decls "," decl //done
+decl        : ID ":" type 
+decls       : decl 
+            | decls "," decl 
 
-exp         : NUMBER //done
-            | ID //done
-            | INSTANCE "." ID //done
-            | basicfunctions //done
-            | exp "[" exp "]" //done
-            | exp OPERATION exp //done
+exp         : NUMBER 
+            | ID 
+            | INSTANCE "." ID 
+            | basicfunctions 
+            | exp "[" exp "]" 
+            | exp OPERATION exp 
+            | "[]"
 
-bool        : exp BOOLOPERATION exp //done
-            | FORALL rangeiter ":" bool //done
-            | EXISTS rangeiter ":" bool //done
-            | bool AND bool //done
-            | bool OR bool //done
-            | NOT bool //done
-            | "(" bool ")" //done
-            | BOOL //done
+bool        : exp BOOLOPERATION exp 
+            | FORALL rangeiter ":" bool 
+            | EXISTS rangeiter ":" bool 
+            | bool AND bool
+            | bool OR bool
+            | NOT bool
+            | "(" bool ")"
+            | BOOL
 
-codeblock   : code codeblock //done
-            | code //done
+codeblock   : code codeblock
+            | code
 
-code        : exp "=" exp ";" //done
-            | IF bool "then" codeblock (ELSE codeblock)? "endif" //done
+code        : exp "=" exp ";"
+            | basicfunctions
+            | IF bool "then" codeblock (ELSE codeblock)? "endif"
             | WHILE bool "do" codeblock "end"
-            | FOREACH rangeiter ":" codeblock "end" //done
-            | RETURN ID ";" //done
+            | FOREACH rangeiter ":" codeblock "end" 
+            | RETURN ID ";"
 
 basicfunctions  : SIZE "(" exp ")" 
-
+                | APPEND "(" exp "," exp ")"
+ 
 strategyname    : "random"
                 | "hill-climbing"
 
@@ -46,8 +49,8 @@ strategy            : "#strategy:" strategyname
 
 specification       : instance? initialstate validstate finalstate transition validtransition strategy?
 
-rangeiter   : ID "<-" range //done
-range       : "[" exp "," exp "]" //done
+rangeiter   : ID "<-" range 
+range       : "[" exp "," exp "]" 
 
 
 ID          : /[A-Za-z][A-Za-z0-9]*/
@@ -74,6 +77,7 @@ WHILE       : "while"
 FOREACH     : "foreach"
 
 SIZE        : "len"
+APPEND      : "append"
 
 %import common.WS
 %ignore WS

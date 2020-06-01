@@ -1,6 +1,8 @@
-#initial-state: 	foreach i <- [0, 2]:
+#initial-state: 	inits = [];
+					foreach i <- [0, 2]:
+						append(inits, [])
 						foreach j <- [0, 2]:
-							inits[i][j] = 0;
+							append(inits[i], 0)
 						end
 					end
 					return inits;
