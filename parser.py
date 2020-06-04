@@ -2,6 +2,27 @@ from lark import Lark, Visitor, Transformer, Tree, Token
 import os
 import sys
 
+
+def generateRandomFunction(rangeIters):
+	randomFunction = ["def random(self):"]
+	functionContent = ["state = self.initialState()"]
+	functionContent.append("while not self.finalState(state):")
+	whileContent = []
+	ids = [rangeIter[0] for rangeIter in rangeIters]
+	for rangeIter in rangeIters:
+		whileContent.append("%s = random.randint(%s, %s)"%(rangeIter[0], rangeIter[1], rangeIter[2]))
+	functionParams =  [", %s"%id for id in ids]
+	paramString = ""
+	for param in functionParams:
+		paramString += param
+	whileContent.append("newState = self.transition(copy.deepcopy(state)%s)"%paramString)
+	whileContent.append("if self.validTransition(copy.deepcopy(state)%s) and self.validState(newState):"%paramString)
+	whileContent.append(["state = newState"])
+	functionContent.append(whileContent)
+	randomFunction.append(functionContent)
+	return randomFunction
+
+
 class BasicFunctions(Transformer):
 	def basicfunctions(self, children):
 		if (children[0].type.lower() == "size"):
@@ -46,9 +67,15 @@ class Bool(Transformer):
 				if children[0].type.lower() == 'not':
 					return 'not ' + children[1]
 				if children[0].type.lower() == "forall":
-					return "all(" + children[2] + " " + RangeIter().transform(children[1]).split(':')[0] + ")"
+					string = "all(" + children[2] + " "
+					rangeValues = RangeIter().transform(children[1])
+					string += "for " + rangeValues[0] + " in range(" + rangeValues[1] + ", " + rangeValues[2] + "+1))"
+					return string
 				if children[0].type.lower() == "exists":
-					return "any(" + children[2] + " " + RangeIter().transform(children[1]).split(':')[0] + ")"
+					string = "any(" + children[2] + " "
+					rangeValues = RangeIter().transform(children[1])
+					string += "for " + rangeValues[0] + " in range(" + rangeValues[1] + ", " + rangeValues[2] + "+1))"
+					return string
 		else:
 			if isinstance(children[0], Token):
 				return str(children[0])
@@ -64,19 +91,28 @@ class Range(Transformer):
 
 
 class RangeIter(Transformer):
-    def rangeiter(self, children):
-        values = Range().transform(children[1])
-        string = "for " + \
-            children[0] + " in range(" + values[0] + ", " + values[1] + "+1" + "): "
-        return string
+	def rangeiter(self, children):
+		values = Range().transform(children[1])
+		values = (str(children[0]), *values)
+		return values
 
+
+class RangeIters(Transformer):
+	def rangeiters(self, children):
+		if (len(children) == 1):
+			return [RangeIter().transform(children[0])]
+		else:
+			return [RangeIter().transform(children[0])] + children[1]
 
 class Code(Transformer):
 	def code(self, children):
 		variable = []
 		if (isinstance(children[0], Token)):
 			if (children[0].type.lower() == "foreach"):
-				variable.append(RangeIter().transform(children[1]))
+				rangeValues = RangeIter().transform(children[1])
+				string = "for " + \
+					rangeValues[0] + " in range(" + rangeValues[1] + ", " + rangeValues[2] + "+1): "
+				variable.append(string)
 				variable += children[2]
 			elif (children[0].type.lower() == "return"):
 				variable.append("return " + children[1])
@@ -164,12 +200,10 @@ class InitialState(Transformer):
 		return variable
 
 
-
 class Transition(Transformer):
 	def transition(self, children):
 		variable = []
 		function = "def transition(self, "  # TODO: rename variable
-		decls = Decls().transform(children[0])
 		function += Decls().transform(children[0])
 		function += "):"
 		variable.append(function)
@@ -199,6 +233,12 @@ class Instance(Transformer):
 		return variable
 
 
+class Strategy(Transformer):
+	def strategy(self, children):
+		if (children[0].type.lower() == "random"):
+			return generateRandomFunction(RangeIters().transform(children[1]))
+
+
 class Specification(Transformer):
 	def specification(self, children):
 		data = []
@@ -215,9 +255,9 @@ class Specification(Transformer):
 				data.append(Transition().transform(child))
 			elif (child.data == 'validtransition'):
 				data.append(ValidTransition().transform(child))
+			elif (child.data == 'strategy'):
+				data.append(Strategy().transform(child))
 		return data
-
-
 
 
 def prettyPrint(lines, nrOfIndents):
@@ -247,7 +287,8 @@ if (len(fileNames) != 0):
 for fileName in fileNames:
 	tree = parser.parse(open('models/%s.aim'%fileName).read())
 	functions = Specification().transform(tree)
-	codeString = "class %s:"%fileName
+	codeString = "import random, copy\n\n"
+	codeString += "class %s:"%fileName
 
 	for function in functions:
 		codeString += '\n'

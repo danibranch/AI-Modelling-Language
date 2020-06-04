@@ -36,7 +36,7 @@ basicfunctions  : SIZE "(" exp ")"
                 | APPEND "(" exp "," exp ")"
  
 strategyname    : "random"
-                | "hill-climbing"
+                | "backtracking"
 
 instance            : "#instance:" decls ";" codeblock
 validstate          : "#valid-state:" decl ";" bool
@@ -44,13 +44,14 @@ initialstate        : "#initial-state:" (decls ";")? codeblock
 finalstate          : "#final-state:" decls ";" bool
 transition          : "#transition:" decls ";" codeblock
 validtransition     : "#valid-transition:" decls ";" bool
-strategy            : "#strategy:" strategyname
-                    | "#strategy:" strategyname ";" decls";" codeblock
+strategy            : "#strategy:" RANDOM ";" rangeiters
 
 specification       : instance? initialstate validstate finalstate transition validtransition strategy?
 
+rangeiters  : rangeiter
+            | rangeiter "," rangeiters
 rangeiter   : ID "<-" range 
-range       : "[" exp "," exp "]" 
+range       : "[" exp "," exp "]"
 
 
 ID          : /[A-Za-z][A-Za-z0-9]*/
@@ -78,6 +79,8 @@ FOREACH     : "foreach"
 
 SIZE        : "len"
 APPEND      : "append"
+
+RANDOM      : "random"
 
 %import common.WS
 %ignore WS
