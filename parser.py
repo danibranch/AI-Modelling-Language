@@ -11,16 +11,63 @@ def generateRandomFunction(rangeIters):
 	ids = [rangeIter[0] for rangeIter in rangeIters]
 	for rangeIter in rangeIters:
 		whileContent.append("%s = random.randint(%s, %s)"%(rangeIter[0], rangeIter[1], rangeIter[2]))
-	functionParams =  [", %s"%id for id in ids]
-	paramString = ""
-	for param in functionParams:
-		paramString += param
+	paramString = "".join([", %s"%id for id in ids])
 	whileContent.append("newState = self.transition(copy.deepcopy(state)%s)"%paramString)
 	whileContent.append("if self.validTransition(copy.deepcopy(state)%s) and self.validState(newState):"%paramString)
 	whileContent.append(["state = newState"])
 	functionContent.append(whileContent)
+	functionContent.append("return state")
 	randomFunction.append(functionContent)
 	return randomFunction
+
+
+def generateImprovedRandomFunction(rangeIters):
+	randomFunction = ["def improvedRandom(self, maxNrOfSteps = float('inf')):"]
+	functionContent = ["state = self.initialState()"]
+	functionContent.append("visitedStates = [state]")
+	functionContent.append("nrOfSteps = 0")
+	functionContent.append("while not self.finalState(state):")
+	whileContent = []
+	ids = [rangeIter[0] for rangeIter in rangeIters]
+	for rangeIter in rangeIters:
+		whileContent.append("%s = random.randint(%s, %s)"%(rangeIter[0], rangeIter[1], rangeIter[2]))
+	paramString = "".join([", %s"%id for id in ids])
+	whileContent.append("newState = self.transition(copy.deepcopy(state)%s)"%paramString)
+	whileContent.append("nrOfSteps += 1")
+	whileContent.append("if newState not in visitedStates and self.validTransition(copy.deepcopy(state)%s) and self.validState(newState):"%paramString)
+	whileContent.append(["state = newState"])
+	whileContent.append(["visitedStates.append(state)"])
+	whileContent.append("if nrOfSteps > maxNrOfSteps:")
+	whileContent.append(["state = self.initialState()"])
+	whileContent.append(["visitedStates = [state]"])
+	whileContent.append(["nrOfSteps = 0"])
+	functionContent.append(whileContent)
+	functionContent.append("return state")
+	randomFunction.append(functionContent) 
+	return randomFunction
+
+
+def generateBackTrackingFunction(rangeIters):
+	backtrackingFunction = ["def backtracking(self, state, visitedStates):"]
+	firstList = []
+	latestList = firstList
+	for rangeIter in rangeIters:
+		newList = ["for %s in range(%s, %s+1):"%(rangeIter[0], rangeIter[1], rangeIter[2])]
+		latestList.append(newList)
+		latestList = newList
+
+	paramString = "".join([", %s"%id for id in [rangeIter[0] for rangeIter in rangeIters]])
+
+	forContent = []
+	forContent.append("newState = self.transition(copy.deepcopy(state)%s)"%paramString)
+	forContent.append("if newState not in visitedStates and self.validTransition(copy.deepcopy(state)%s) and self.validState(newState):"%paramString)
+	forContent.append(["if (self.finalState(newState)):", ["return state"]])
+	forContent.append(["else:", ["visitedStates.append(newState)", "self.backtracking(newState, visitedStates)"]])
+	
+	latestList.append(forContent)
+	backtrackingFunction.append(firstList[0])
+
+	return backtrackingFunction
 
 
 class BasicFunctions(Transformer):
@@ -237,6 +284,10 @@ class Strategy(Transformer):
 	def strategy(self, children):
 		if (children[0].type.lower() == "random"):
 			return generateRandomFunction(RangeIters().transform(children[1]))
+		elif (children[0].type.lower() == "improvedrandom"):
+			return generateImprovedRandomFunction(RangeIters().transform(children[1]))
+		elif (children[0].type.lower() == "backtracking"):
+			return generateBackTrackingFunction(RangeIters().transform(children[1]))
 
 
 class Specification(Transformer):
@@ -257,6 +308,7 @@ class Specification(Transformer):
 				data.append(ValidTransition().transform(child))
 			elif (child.data == 'strategy'):
 				data.append(Strategy().transform(child))
+				# Strategy().transform(child)
 		return data
 
 
@@ -293,5 +345,6 @@ for fileName in fileNames:
 	for function in functions:
 		codeString += '\n'
 		codeString += prettyPrint(function, 1)
+	codeString += '\n'
 
 	open("generated/%s.py"%fileName, "w+").write(codeString)

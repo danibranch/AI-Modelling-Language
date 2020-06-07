@@ -45,6 +45,8 @@ finalstate          : "#final-state:" decls ";" bool
 transition          : "#transition:" decls ";" codeblock
 validtransition     : "#valid-transition:" decls ";" bool
 strategy            : "#strategy:" RANDOM ";" rangeiters
+                    | "#strategy:" IMPROVEDRANDOM ";" rangeiters
+                    | "#strategy:" BACKTRACKING ";" rangeiters
 
 specification       : instance? initialstate validstate finalstate transition validtransition strategy?
 
@@ -80,7 +82,9 @@ FOREACH     : "foreach"
 SIZE        : "len"
 APPEND      : "append"
 
-RANDOM      : "random"
+RANDOM          : "random"
+IMPROVEDRANDOM  : "improvedRandom"
+BACKTRACKING    : "backtracking"
 
 %import common.WS
 %ignore WS
