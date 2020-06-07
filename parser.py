@@ -70,6 +70,23 @@ def generateBackTrackingFunction(rangeIters):
 	return backtrackingFunction
 
 
+def generateHillClimbingFunction(rangeIters):
+	hillclimbingFunc = ["def hillClimbing(self):"]
+	functionContent = ["state = self.initialState()"]
+	functionContent.append("while not self.finalState(state):")
+	whileContent = []
+	for rangeIter in rangeIters:
+		whileContent.append("%s = random.randint(%s, %s)"%(rangeIter[0], rangeIter[1], rangeIter[2]))
+	paramString = "".join([", %s"%id for id in [rangeIter[0] for rangeIter in rangeIters]])
+	whileContent.append("newState = self.transition(copy.deepcopy(state)%s)"%paramString)
+	whileContent.append("if self.validTransition(copy.deepcopy(state)%s) and self.validState(newState) and (self.heuristic(newState) >= self.heuristic(state)):"%paramString)
+	whileContent.append(["state = newState"])
+	functionContent.append(whileContent)
+	functionContent.append("return state")
+	hillclimbingFunc.append(functionContent)
+	return hillclimbingFunc
+
+
 class BasicFunctions(Transformer):
 	def basicfunctions(self, children):
 		if (children[0].type.lower() == "size"):
@@ -165,7 +182,7 @@ class Code(Transformer):
 				variable.append("return " + children[1])
 			elif (children[0].type.lower() == "if"):
 				variable.append("if (" + Bool().transform(children[1]) + "):")
-				variable.append(CodeBlock().transform(children[2]))
+				variable.append(children[2])
 				if (len(children) > 3):
 					variable.append("else:")
 					variable.append(CodeBlock().transform(children[4]))
@@ -288,6 +305,13 @@ class Strategy(Transformer):
 			return generateImprovedRandomFunction(RangeIters().transform(children[1]))
 		elif (children[0].type.lower() == "backtracking"):
 			return generateBackTrackingFunction(RangeIters().transform(children[1]))
+		elif (children[0].type.lower() == "hillclimbing"):
+			hillClimbingFunc = generateHillClimbingFunction(RangeIters().transform(children[1]))
+			heuristicFunc = ["def heuristic(self, state):"]
+			heuristicFunc.extend(CodeBlock().transform(children[2]))
+			hillClimbingFunc.append("")
+			hillClimbingFunc.extend(heuristicFunc)
+			return hillClimbingFunc
 
 
 class Specification(Transformer):
@@ -308,7 +332,6 @@ class Specification(Transformer):
 				data.append(ValidTransition().transform(child))
 			elif (child.data == 'strategy'):
 				data.append(Strategy().transform(child))
-				# Strategy().transform(child)
 		return data
 
 
@@ -348,3 +371,20 @@ for fileName in fileNames:
 	codeString += '\n'
 
 	open("generated/%s.py"%fileName, "w+").write(codeString)
+
+
+
+
+# parser = Lark(open('grammer.lark'), start='codeblock')
+
+# input = """
+# 					nrOfPiecesOnLastTower = 0;
+# 					foreach i <- [0, instance.nrPiese-1]:
+# 						if (state[i] == instance.nrTurnuri) then
+# 							nrOfPiecesOnLastTower = nrOfPiecesOnLastTower + 1;
+# 						endif
+# 					end
+# 					return nrOfPiecesOnLastTower;
+# """
+
+# parser.parse(input)

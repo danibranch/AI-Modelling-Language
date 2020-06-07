@@ -47,6 +47,7 @@ validtransition     : "#valid-transition:" decls ";" bool
 strategy            : "#strategy:" RANDOM ";" rangeiters
                     | "#strategy:" IMPROVEDRANDOM ";" rangeiters
                     | "#strategy:" BACKTRACKING ";" rangeiters
+                    | "#strategy:" HILLCLIMBING ";" rangeiters ";" codeblock
 
 specification       : instance? initialstate validstate finalstate transition validtransition strategy?
 
@@ -85,6 +86,7 @@ APPEND      : "append"
 RANDOM          : "random"
 IMPROVEDRANDOM  : "improvedRandom"
 BACKTRACKING    : "backtracking"
+HILLCLIMBING    : "hill-climbing"
 
 %import common.WS
 %ignore WS
