@@ -8,16 +8,16 @@
 					return inits;
 #valid-state: 		state:list<list<int>>;
 					len(state) == 3 &&
-					(forall i <- [0, 2]: len(state[i]) == 3) &&
-					(forall i <- [0, 2]: forall j <- [0, 2]: 0 <= state[i][j] && state[i][j] <= 2)
+					(forall i <- [0, 2]: (len(state[i]) == 3)) &&
+					(forall i <- [0, 2]: (forall j <- [0, 2]: (0 <= state[i][j] && state[i][j] <= 2)))
 #final-state: 		state:list<list<int>>;
 					exists i <- [0, 2]: 
 					(
-						state[i][0] == state[i][1] && state[i][1] == state[i][2] && state[i][2] != 0 ||
-						state[0][i] == state[1][i] && state[1][i] == state[2][i] && state[2][i] != 0	
+						(state[i][0] == state[i][1] && state[i][1] == state[i][2] && state[i][2] != 0) ||
+						(state[0][i] == state[1][i] && state[1][i] == state[2][i] && state[2][i] != 0)	
 					) ||
-					state[0][0] == state[1][1] && state[1][1] == state[2][2] && state[2][2] != 0 ||
-					state[2][0] == state[1][1] && state[1][1] == state[0][2] && state[0][2] != 0
+					(state[0][0] == state[1][1] && state[1][1] == state[2][2] && state[2][2] != 0) ||
+					(state[2][0] == state[1][1] && state[1][1] == state[0][2] && state[0][2] != 0)
 #transition: 		state:list<list<int>>, player:int, row:int, col:int;
 					newState = state;
 					newState[row][col] = player;

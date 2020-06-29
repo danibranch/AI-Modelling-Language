@@ -1,0 +1,36 @@
+#instance:          nrRegine: int;
+                    instance.nrRegine = nrRegine;
+#initial-state:     initialState = [];
+                    foreach i <- [0, instance.nrRegine-1]:
+                        append(initialState, -1)
+                    end
+                    return initialState;
+#valid-state:       state:list<int>;
+                    len(state) == instance.nrRegine &&
+                    forall i <- [0, instance.nrRegine-1]: 
+                        (state[i] >= -1 && state[i] <= instance.nrRegine) &&
+                    forall i<-[0, instance.nrRegine-1]: (forall j<-[0, instance.nrRegine-1]: (state[i]!=state[j] || state[i]==-1 || i==j)) &&
+                    forall i<-[0, instance.nrRegine-1]: (forall j<-[0, instance.nrRegine-1]:
+                        (state[i]==-1 || state[j]==-1 || i==j || (i-state[i] != j-state[j] && i+state[i] != j+state[j])))
+#final-state:       state:list<int>;
+                    forall i <- [0, instance.nrRegine-1]: (state[i] != -1)
+#transition:        state: list<int>, row:int, col:int;
+                    newState = state;
+                    newState[row] = col;
+                    return newState;
+#valid-transition:  state: list<int>, row:int, col:int;
+                    row >= 0 && row < instance.nrRegine &&
+                    col >= 0 && col < instance.nrRegine &&
+                    state[row]==-1 &&
+                    (forall i<-[0, instance.nrRegine-1]: (state[i]!=col)) &&
+                    (forall i<-[0, instance.nrRegine-1]:
+                        ((i-state[i] != row-col && i+state[i] != row+col) || state[i] == -1))
+#strategy:          hill-climbing; row <- [0, instance.nrRegine-1], col <- [0, instance.nrRegine-1];
+                    state: list<int>;
+                    nrOfChosenQueens = 0;
+                    foreach i <- [0, instance.nrRegine-1]:
+                        if (state[i] != -1) then
+                            nrOfChosenQueens = nrOfChosenQueens + 1;
+                        endif
+                    end
+                    return nrOfChosenQueens;

@@ -16,7 +16,7 @@ def generateRandomFunction(rangeIters):
 	whileContent.append("if self.validTransition(copy.deepcopy(state)%s) and self.validState(newState):"%paramString)
 	whileContent.append(["state = newState"])
 	functionContent.append(whileContent)
-	functionContent.append("return state")
+	functionContent.append("return newState")
 	randomFunction.append(functionContent)
 	return randomFunction
 
@@ -185,10 +185,10 @@ class Code(Transformer):
 				variable.append(children[2])
 				if (len(children) > 3):
 					variable.append("else:")
-					variable.append(CodeBlock().transform(children[4]))
+					variable.append(children[4])
 			elif (children[0].type.lower() == "while"):
 				variable.append("while (" + Bool().transform(children[1]) + "):")
-				variable.append(CodeBlock().transform(children[2]))
+				variable.append(children[2])
 		else:
 			if (children[0].data == "basicfunctions"):
 				variable.append(BasicFunctions().transform(children[0]))
@@ -229,8 +229,8 @@ class Decls(Transformer):
 class FinalState(Transformer):
 	def finalstate(self, children):
 		variable = []
-		function = "def finalState(self, "  # TODO: rename variable
-		function += Decls().transform(children[0])
+		function = "def finalState(self, "  
+		function += Decl().transform(children[0])
 		function += "):"
 		variable.append(function)
 		variable.append(["return " + Bool().transform(children[1])])
@@ -240,7 +240,7 @@ class FinalState(Transformer):
 class ValidState(Transformer):
 	def validstate(self, children):
 		variable = []
-		function = "def validState(self, "  # TODO: rename variable
+		function = "def validState(self, "
 		function += Decl().transform(children[0])
 		function += "):"
 		variable.append(function)
@@ -251,7 +251,7 @@ class ValidState(Transformer):
 class InitialState(Transformer):
 	def initialstate(self, children):
 		variable = []
-		function = "def initialState(self"  # TODO: rename variable
+		function = "def initialState(self"
 		if (children[0].data == "decls"):
 			function += ", " + Decls().transform(children[0])
 			function += "):"
@@ -267,7 +267,7 @@ class InitialState(Transformer):
 class Transition(Transformer):
 	def transition(self, children):
 		variable = []
-		function = "def transition(self, "  # TODO: rename variable
+		function = "def transition(self, "
 		function += Decls().transform(children[0])
 		function += "):"
 		variable.append(function)
@@ -278,7 +278,7 @@ class Transition(Transformer):
 class ValidTransition(Transformer):
 	def validtransition(self, children):
 		variable = []
-		function = "def validTransition(self, "  # TODO: rename variable
+		function = "def validTransition(self, "
 		function += Decls().transform(children[0])
 		function += "):"
 		variable.append(function)
@@ -289,7 +289,7 @@ class ValidTransition(Transformer):
 class Instance(Transformer):
 	def instance(self, children):
 		variable = []
-		function = "def __init__(self, "  # TODO: rename variable
+		function = "def __init__(self, "
 		function += Decls().transform(children[0])
 		function += "):"
 		variable.append(function)
@@ -307,8 +307,9 @@ class Strategy(Transformer):
 			return generateBackTrackingFunction(RangeIters().transform(children[1]))
 		elif (children[0].type.lower() == "hillclimbing"):
 			hillClimbingFunc = generateHillClimbingFunction(RangeIters().transform(children[1]))
-			heuristicFunc = ["def heuristic(self, state):"]
-			heuristicFunc.extend(CodeBlock().transform(children[2]))
+			decl = Decl().transform(children[2])
+			heuristicFunc = ["def heuristic(self, %s):"%decl]
+			heuristicFunc.extend(CodeBlock().transform(children[3]))
 			hillClimbingFunc.append("")
 			hillClimbingFunc.extend(heuristicFunc)
 			return hillClimbingFunc
@@ -371,20 +372,3 @@ for fileName in fileNames:
 	codeString += '\n'
 
 	open("generated/%s.py"%fileName, "w+").write(codeString)
-
-
-
-
-# parser = Lark(open('grammer.lark'), start='codeblock')
-
-# input = """
-# 					nrOfPiecesOnLastTower = 0;
-# 					foreach i <- [0, instance.nrPiese-1]:
-# 						if (state[i] == instance.nrTurnuri) then
-# 							nrOfPiecesOnLastTower = nrOfPiecesOnLastTower + 1;
-# 						endif
-# 					end
-# 					return nrOfPiecesOnLastTower;
-# """
-
-# parser.parse(input)

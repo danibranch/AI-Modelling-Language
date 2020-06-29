@@ -6,16 +6,16 @@
 					end
 					return initialState;
 #valid-state:		state: int;
- 					forall i <- [0, instance.nrPiese-1]: state[i] != 0
+ 					forall i <- [0, instance.nrPiese-1]: (state[i] != 0)
 #final-state: 		state:list<int>;
-					forall i <- [0, instance.nrPiese-1]: state[i] == instance.nrTurnuri
+					forall i <- [0, instance.nrPiese-1]: (state[i] == instance.nrTurnuri)
 #transition: 		state:list<int>, piece:int, tower:int;
 					newState = state;
 					newState[piece] = tower;
 					return newState;
 #valid-transition: 	state:list<int>, piece:int, tower:int;
-					(forall i <- [0, piece-1]: state[i] != tower) &&
-					(forall i <- [0, piece-1]: state[i] != state[piece])
+					(forall i <- [0, piece-1]: (state[i] != tower)) &&
+					(forall i <- [0, piece-1]: (state[i] != state[piece]))
 #strategy:			random;
 					piece <- [0, instance.nrPiese-1],
 					tower <- [1, instance.nrTurnuri]

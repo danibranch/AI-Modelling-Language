@@ -1,0 +1,42 @@
+#instance:          nrOfMissionaries: int, nrOfCannibals: int, boatCapacity: int;
+                    instance.nrOfMissionaries = nrOfMissionaries;
+                    instance.nrOfCannibals = nrOfCannibals;
+                    instance.boatCapacity = boatCapacity;
+#initial-state:     initialState = [];
+                    append(initialState, 1) 
+                    append(initialState, instance.nrOfMissionaries)
+                    append(initialState, instance.nrOfCannibals)
+                    append(initialState, 0)
+                    append(initialState, 0)
+                    return initialState;
+#valid-state:       state:list<int>;
+                    (state[0] == 1 || state[0] == 2) &&
+                    (state[1] + state[3] == instance.nrOfMissionaries) &&
+                    (state[2] + state[4] == instance.nrOfCannibals) &&
+                    ((state[1] > 0 && state[1] >= state[2]) || state[1] == 0) &&
+                    ((state[3] > 0 && state[3] >= state[4]) || state[3] == 0)
+#final-state:       state:list<int>;
+                    state[0] == 2 && state[1] == 0 && state[2] == 0 && state[3] == instance.nrOfMissionaries && state[4] == instance.nrOfCannibals
+#transition:        state:list<int>, movedMissionaries:int, movedCanibals:int;
+                    newState = [];
+                    append(newState, 3 - state[0])
+                    if (state[0] == 1) then
+                        append(newState, state[1] - movedMissionaries)
+                        append(newState, state[2] - movedCanibals)
+                        append(newState, state[3] + movedMissionaries)
+                        append(newState, state[4] + movedCanibals)
+                    else
+                        append(newState, state[1] + movedMissionaries)
+                        append(newState, state[2] + movedCanibals)
+                        append(newState, state[3] - movedMissionaries)
+                        append(newState, state[4] - movedCanibals)
+                    endif
+                    return newState;
+#valid-transition:  state:list<int>, movedMissionaries:int, movedCanibals:int;
+                    movedMissionaries + movedCanibals != 0 &&
+                    (movedCanibals + movedMissionaries <= instance.boatCapacity) &&
+                    ((state[0] == 1 && movedMissionaries <= state[1] && movedCanibals <= state[2]) ||
+                    (state[0] == 2 && movedMissionaries <= state[3] && movedCanibals <= state[4]))
+#strategy:          backtracking;
+                    movedMissionaries <- [0, instance.boatCapacity],
+                    movedCanibals <- [0, instance.boatCapacity]
